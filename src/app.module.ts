@@ -3,6 +3,8 @@ import { AuthModule } from './auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EnvConfiguration } from './config/env.config';
+import { ExerciseModule } from './exercises/exercises.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { EnvConfiguration } from './config/env.config';
     }),
 
     AuthModule,
+    ExerciseModule,
+    CommonModule,
   ],
   controllers: [],
   providers: [],
