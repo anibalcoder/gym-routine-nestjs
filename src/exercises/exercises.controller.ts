@@ -27,11 +27,13 @@ export class ExercisesController {
   }
 
   @Get()
+  @Auth()
   findAll(@Query() paginationDto: PaginationDto) {
     return this.exerciseService.findAll(paginationDto);
   }
 
   @Get(':term')
+  @Auth()
   findOne(@Param('term') term: string) {
     return this.exerciseService.findOne(term);
   }
