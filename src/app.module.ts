@@ -5,6 +5,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EnvConfiguration } from './config/env.config';
 import { ExerciseModule } from './exercises/exercises.module';
 import { CommonModule } from './common/common.module';
+import { UsersModule } from './users/users.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { CommonModule } from './common/common.module';
     AuthModule,
     ExerciseModule,
     CommonModule,
+    UsersModule,
+    FilesModule,
   ],
   controllers: [],
   providers: [],

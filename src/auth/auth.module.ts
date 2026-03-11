@@ -1,18 +1,16 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './entities/auth.entity';
-import { BcryptAdapter } from './adapters/bcrypt.adapter';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { UsersModule } from 'src/users/users.module';
+import { CommonModule } from 'src/common/common.module';
 
 @Module({
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([User]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -24,9 +22,11 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         };
       },
     }),
+    CommonModule,
+    forwardRef(() => UsersModule),
   ],
   controllers: [AuthController],
-  providers: [AuthService, BcryptAdapter, JwtStrategy],
+  providers: [AuthService, JwtStrategy],
   exports: [PassportModule],
 })
 export class AuthModule {}

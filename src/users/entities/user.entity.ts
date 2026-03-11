@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { ProfileImage } from './user-image.entity';
 
 @Entity('users')
 export class User {
@@ -13,6 +14,11 @@ export class User {
   })
   email: string;
 
+  @Column('varchar', {
+    unique: true,
+  })
+  nickname: string;
+
   @Column('text')
   password: string;
 
@@ -26,4 +32,7 @@ export class User {
     default: ['user'],
   })
   roles: string[];
+
+  @OneToOne(() => ProfileImage, (image) => image.user, { cascade: true })
+  profileImage: ProfileImage;
 }
