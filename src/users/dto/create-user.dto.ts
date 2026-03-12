@@ -30,7 +30,7 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   @IsUrl()
-  profileImage: string;
+  profileImage?: string;
 
   @IsArray()
   @IsString({ each: true })

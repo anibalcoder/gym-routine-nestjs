@@ -1,15 +1,16 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { existsSync } from 'fs';
-import { join } from 'path';
+import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
+
+export type CloudinaryUploadResult = UploadApiResponse;
 
 @Injectable()
 export class FilesService {
-  getStaticImageName(imageName: string) {
-    const path = join(__dirname, '../../static/uploads', imageName);
-
-    if (!existsSync(path))
-      throw new BadRequestException(`No se encontro la imagen ${imageName}`);
-
-    return path;
+  async deleteImage(publicId: string): Promise<any> {
+    try {
+      const result = (await cloudinary.uploader.destroy(publicId)) as string;
+      return result;
+    } catch {
+      throw new BadRequestException('Error al eliminar la imagen');
+    }
   }
 }

@@ -12,6 +12,7 @@ import { FilesModule } from './files/files.module';
   imports: [
     ConfigModule.forRoot({
       load: [EnvConfiguration],
+      isGlobal: true,
     }),
 
     TypeOrmModule.forRootAsync({
