@@ -3,11 +3,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { DatabaseExceptionService } from 'src/common/services/database-exception.service';
 import { validate as isUUID } from 'uuid';
 import { BcryptAdapter } from 'src/common/adapters/bcrypt.adapter';
 import { ProfileImage } from './entities/user-image.entity';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class UsersService {
@@ -20,6 +21,7 @@ export class UsersService {
 
     private readonly bcryptAdapter: BcryptAdapter,
     private readonly databaseExceptionService: DatabaseExceptionService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -48,8 +50,13 @@ export class UsersService {
     }
   }
 
-  findAll() {
-    return `This action returns all users`;
+  findAll(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+    return this.userRepository.find({
+      take: limit,
+      skip: offset,
+      relations: ['profileImage'],
+    });
   }
 
   async findOne(term: string) {
@@ -60,6 +67,7 @@ export class UsersService {
     } else {
       user = await this.userRepository.findOne({
         where: [{ email: term }, { nickname: term }],
+        relations: ['profileImage'],
       });
     }
 
@@ -67,12 +75,35 @@ export class UsersService {
     return user; // TODO: EVITAR QUE SE MUESTRE PASSWORD Y ISACTIVE
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const { profileImage, ...userToUpdate } = updateUserDto;
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+    const user = await this.userRepository.preload({ id, ...userToUpdate });
+
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      if (profileImage) {
+        await queryRunner.manager.delete(ProfileImage, { user: user.id });
+
+        user.profileImage = this.profileImageRepository.create({
+          url: profileImage,
+        });
+      }
+
+      await queryRunner.manager.save(user);
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      this.databaseExceptionService.handleDBExceptions(error);
+    }
+
+    return `This action updates a #${id} user`;
   }
 }
